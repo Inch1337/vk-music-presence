@@ -145,3 +145,32 @@ Never invent library APIs, methods, or capabilities.
 Help me understand the problem, investigate solutions, write the code, test it, and learn from mistakes.
 
 The objective is both a working open-source application and my growth as an independent Go developer.
+
+## Superpowers Usage
+
+Superpowers skills may be used to support learning,
+planning, debugging, and code reviews.
+
+Preferred skills:
+- brainstorming
+- systematic-debugging
+- test-driven-development
+- requesting-code-review
+- receiving-code-review
+- verification-before-completion
+- writing-plans
+
+Important rules:
+
+- Use skills primarily for teaching and guidance.
+- Do not automatically execute implementation plans.
+- Do not dispatch coding subagents without permission.
+- Do not create Git worktrees without permission.
+- Do not modify files or write production code unless requested.
+- Explain the purpose of a skill when it is relevant.
+- Let me write tests and implementations myself.
+- Superpowers workflows must respect the mentoring
+  rules defined in this AGENTS.md.
+
+If a skill recommends autonomous implementation,
+stop and ask for permission before taking action.
