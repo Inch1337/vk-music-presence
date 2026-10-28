@@ -23,10 +23,13 @@ func main() {
 }
 
 func run() error {
+	// Keep the goroutine on one OS thread for COM initialization and cleanup.
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 	fmt.Println("Thread locked")
 
+	// Initialize COM in multithreaded mode.
+	// S_FALSE also indicates success and requires CoUninitialize.
 	err := ole.CoInitializeEx(0, ole.COINIT_MULTITHREADED)
 	if err != nil {
 		oleErr, ok := err.(*ole.OleError)
@@ -40,6 +43,7 @@ func run() error {
 
 	fmt.Println("COM initialized successfully")
 
+	// Start an asynchronous request for the GSMTC session manager.
 	operation, err := control.GlobalSystemMediaTransportControlsSessionManagerRequestAsync()
 	if err != nil {
 		return fmt.Errorf("request GSMTC manager: %w", err)
@@ -47,6 +51,7 @@ func run() error {
 
 	defer operation.Release()
 
+	// Register a callback that sends the completion status to a Go channel.
 	done := make(chan foundation.AsyncStatus, 1)
 
 	handlerIID := ole.NewGUID(winrt.ParameterizedInstanceGUID(
@@ -71,6 +76,7 @@ func run() error {
 		return fmt.Errorf("register completion handler: %w", err)
 	}
 
+	// Wait for the operation to finish before accessing its result.
 	status := <-done
 	fmt.Printf("GSMTC operation status: %v\n", status)
 
@@ -78,6 +84,7 @@ func run() error {
 		return fmt.Errorf("GSMTC operation failed with status: %v", status)
 	}
 
+	// Retrieve the session manager from the completed operation.
 	result, err := operation.GetResults()
 	if err != nil {
 		return fmt.Errorf("get GSMTC manager: %w", err)
@@ -91,6 +98,7 @@ func run() error {
 
 	defer manager.Release()
 
+	// Get the collection of available media sessions.
 	sessions, err := manager.GetSessions()
 	if err != nil {
 		return fmt.Errorf("get GSMTC sessions: %w", err)
@@ -102,12 +110,31 @@ func run() error {
 
 	defer sessions.Release()
 
+	// Check how many media sessions are available.
 	size, err := sessions.GetSize()
 	if err != nil {
 		return fmt.Errorf("get size of GSMTC sessions: %w", err)
 	}
 
 	fmt.Printf("Number of GSMTC sessions: %d\n", size)
+
+	if size == 0 {
+		fmt.Print("No media sessions found")
+		return nil
+	}
+
+	// Retrieve the first session for inspection.
+	sessionOne, err := sessions.GetAt(0)
+	if err != nil {
+		return fmt.Errorf("get first session: %w", err)
+	}
+	if sessionOne == nil {
+		return fmt.Errorf("First session is nil")
+	}
+
+	firstSession := (*control.GlobalSystemMediaTransportControlsSession)(sessionOne)
+
+	defer firstSession.Release()
 
 	return nil
 }
