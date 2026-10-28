@@ -119,22 +119,31 @@ func run() error {
 	fmt.Printf("Number of GSMTC sessions: %d\n", size)
 
 	if size == 0 {
-		fmt.Print("No media sessions found")
+		fmt.Print("No media sessions found\n")
 		return nil
 	}
 
-	// Retrieve the first session for inspection.
-	sessionOne, err := sessions.GetAt(0)
-	if err != nil {
-		return fmt.Errorf("get first session: %w", err)
-	}
-	if sessionOne == nil {
-		return fmt.Errorf("First session is nil")
-	}
+	for i := uint32(0); i < size; i++ {
+		// Retrieve the session for inspection.
+		sessionPtr, err := sessions.GetAt(i)
+		if err != nil {
+			return fmt.Errorf("get # %v session pointer: %w", i, err)
+		}
+		if sessionPtr == nil {
+			return fmt.Errorf("Session %v is nil", i)
+		}
+		currentSession := (*control.GlobalSystemMediaTransportControlsSession)(sessionPtr)
 
-	firstSession := (*control.GlobalSystemMediaTransportControlsSession)(sessionOne)
+		defer currentSession.Release()
 
-	defer firstSession.Release()
+		sourceAppUserModelID, err := currentSession.GetSourceAppUserModelId()
+		if err != nil {
+			return fmt.Errorf("get session id: %w", err)
+		}
+
+		fmt.Printf("Session %v: %q\n", i, sourceAppUserModelID)
+
+	}
 
 	return nil
 }
