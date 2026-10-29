@@ -231,7 +231,13 @@ func getMetadata(currentSession *control.GlobalSystemMediaTransportControlsSessi
 		return fmt.Errorf("get media Title: %w", err)
 	}
 
-	fmt.Printf("Title: %v\n", mediaTitle)
+	fmt.Printf("Title: %q\n", mediaTitle)
+
+	mediaArtist, err := mediaProperties.GetArtist()
+	if err != nil {
+		return fmt.Errorf("get media # %v Artist: %w", sessionIndex, err)
+	}
+	fmt.Printf("Artist: %q\n", mediaArtist)
 
 	return nil
 }
